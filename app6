@@ -1,0 +1,72 @@
+import requests
+import tkinter as tk
+from tkinter import messagebox
+import getpass  # Import to get the username
+
+def get_weather(city, api_key):
+    base_url = "http://api.weatherapi.com/v1/current.json"
+    parameters = {
+        'key': api_key,
+        'q': city,
+        'aqi': 'no'  # Disable air quality data
+    }
+    response = requests.get(base_url, params=parameters)
+    
+    if response.status_code != 200:
+        return None
+    
+    return response.json()
+
+def display_weather():
+    api_key = "060b0f8efdf54515a4d24111240612"  # Replace with your actual API key
+    city = city_entry.get()
+    weather_data = get_weather(city, api_key)
+
+    if weather_data is None or 'error' in weather_data:
+        messagebox.showerror("Error", weather_data['error']['message'] if 'error' in weather_data else "Unknown error")
+    else:
+        city_name = weather_data['location']['name']
+        local_time = weather_data['location']['localtime']
+        temperature = weather_data['current']['temp_c']
+        weather_description = weather_data['current']['condition']['text']
+        humidity = weather_data['current']['humidity']
+        wind_speed = weather_data['current']['wind_kph']
+        feels_like = weather_data['current']['feelslike_c']
+
+        result_text = (f"Weather in {city_name}:\n"
+                       f"Local Time: {local_time}\n"
+                       f"Temperature: {temperature}°C\n"
+                       f"Feels Like: {feels_like}°C\n"
+                       f"Humidity: {humidity}%\n"
+                       f"Wind Speed: {wind_speed} kph\n"
+                       f"Description: {weather_description.capitalize()}")
+        
+        result_label.config(text=result_text)
+
+# Create the main window
+root = tk.Tk()
+root.title("Weather App")
+
+# Create and place the widgets
+city_label = tk.Label(root, text="Enter city name:", font=("Helvetica", 16))
+city_label.pack()
+
+city_entry = tk.Entry(root, font=("Helvetica", 16))
+city_entry.pack()
+
+get_weather_button = tk.Button(root, text="Get Weather", command=display_weather, font=("Helvetica", 16))
+get_weather_button.pack()
+
+result_label = tk.Label(root, text="", justify=tk.LEFT, font=("Helvetica", 14))
+result_label.pack()
+
+# Display username and version in the bottom corners
+username = getpass.getuser()
+version_label = tk.Label(root, text=f"User: {username}", font=("Helvetica", 12), anchor='w')
+version_label.pack(side=tk.LEFT, padx=10, pady=10)
+
+script_version_label = tk.Label(root, text="Version 6", font=("Helvetica", 12), anchor='e')
+script_version_label.pack(side=tk.RIGHT, padx=10, pady=10)
+
+# Start the GUI event loop
+root.mainloop()
